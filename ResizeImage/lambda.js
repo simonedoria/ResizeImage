@@ -12,11 +12,12 @@ const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 exports.handler = function (event, _context, callback) {
     var path = event.queryStringParameters.key;
     var parts = PathPattern.exec(path);
-    console.log(parts);
+    console.log(parts[0]);
+    console.log(parts[1]);
+    console.log(parts[2]);
     var dir = parts[1] || '';
     var options = parts[2];
     var filename = parts[3];
-
 
     var sizes = options[0].split("x");
 
@@ -24,8 +25,6 @@ exports.handler = function (event, _context, callback) {
     S3.getObject({ Bucket: BUCKET, Key: dir + filename })
         .promise()
         .then(data => {
-            console.log(size[0]);
-            console.log(size[1]);
             contentType = data.ContentType;
             var img = Sharp(data.Body)
                 .resize(
@@ -34,14 +33,6 @@ exports.handler = function (event, _context, callback) {
             return img.withoutEnlargement().toBuffer();
         })
         .then(result => {
-            console.log("result");
-            console.log(result);
-            console.log("bucket");
-            console.log(BUCKET);
-            console.log("content type");
-            console.log(contentType);
-            console.log("key");
-            console.log(path);
             S3.putObject({
                 Body: result,
                 Bucket: BUCKET,
