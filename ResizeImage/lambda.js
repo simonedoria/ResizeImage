@@ -14,12 +14,11 @@ exports.handler = function (event, _context, callback) {
     var parts = PathPattern.exec(path);
     console.log(parts);
     var dir = parts[1] || '';
-    var options = parts[2].split('_');
+    var options = parts[2];
     var filename = parts[3];
 
 
     var sizes = options[0].split("x");
-    var func = options.length > 1 ? options[1] : null;
 
     var contentType;
     S3.getObject({ Bucket: BUCKET, Key: dir + filename })
@@ -30,24 +29,17 @@ exports.handler = function (event, _context, callback) {
                 .resize(
                 sizes[0] === 'AUTO' ? null : parseInt(sizes[0]),
                 sizes[1] === 'AUTO' ? null : parseInt(sizes[1]));
-
-            switch (func) {
-                case 'max': img = img.max(); break;
-                case 'min': img = img.min(); break;
-                case null: break;
-                default:
-                    callback(null, {
-                        statusCode: 400,
-                        body: `Unknown func parameter "${func}"\n` +
-                        'For query ".../150x150_func", "_func" must be either empty, "_min" or "_max"',
-                        headers: { "Content-Type": "text/plain" }
-                    })
-                    return new Promise(() => { })  // the next then-blocks will never be executed
-            }
-
             return img.withoutEnlargement().toBuffer();
         })
         .then(result => {
+            console.log("result");
+            console.log(result);
+            console.log("bucket");
+            console.log(BUCKET);
+            console.log("content type");
+            console.log(contentType);
+            console.log("key");
+            console.log(path);
             S3.putObject({
                 Body: result,
                 Bucket: BUCKET,
