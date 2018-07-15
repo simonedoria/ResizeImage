@@ -23,16 +23,16 @@ exports.handler = function (event, _context, callback) {
     var func = options.length > 1 ? options[1] : null;
 
     var contentType;
-    S3.getObject({Bucket: BUCKET, Key: dir + filename})
+    S3.getObject({ Bucket: BUCKET, Key: dir + filename })
         .promise()
         .then(data => {
             contentType = data.ContentType;
             var img = Sharp(data.Body)
                 .resize(
-                    sizes[0] === 'AUTO' ? null : parseInt(sizes[0]),
-                    sizes[1] === 'AUTO' ? null : parseInt(sizes[1]));
+                sizes[0] === 'AUTO' ? null : parseInt(sizes[0]),
+                sizes[1] === 'AUTO' ? null : parseInt(sizes[1]));
 
-            switch (func){
+            switch (func) {
                 case 'max': img = img.max(); break;
                 case 'min': img = img.min(); break;
                 case null: break;
@@ -40,33 +40,34 @@ exports.handler = function (event, _context, callback) {
                     callback(null, {
                         statusCode: 400,
                         body: `Unknown func parameter "${func}"\n` +
-                              'For query ".../150x150_func", "_func" must be either empty, "_min" or "_max"',
-                        headers: {"Content-Type": "text/plain"}
+                        'For query ".../150x150_func", "_func" must be either empty, "_min" or "_max"',
+                        headers: { "Content-Type": "text/plain" }
                     })
-                    return new Promise(() => {})  // the next then-blocks will never be executed
+                    return new Promise(() => { })  // the next then-blocks will never be executed
             }
 
             return img.withoutEnlargement().toBuffer();
         })
-        .then(result =>
+        .then(result => {
+            console.log(result);
             S3.putObject({
                 Body: result,
                 Bucket: BUCKET,
                 ContentType: contentType,
                 Key: path
             }).promise()
-        )
+        })
         .then(() =>
             callback(null, {
                 statusCode: 301,
-                headers: {"Location" : `${URL}/${path}`}
+                headers: { "Location": `${URL}/${path}` }
             })
         )
         .catch(e => {
             callback(null, {
                 statusCode: e.statusCode || 400,
                 body: 'Exception: ' + e.message,
-                headers: {"Content-Type": "text/plain"}
+                headers: { "Content-Type": "text/plain" }
             })
         });
 }
