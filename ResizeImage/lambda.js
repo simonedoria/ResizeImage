@@ -22,7 +22,7 @@ exports.handler = function (event, _context, callback) {
     console.log(filename);
     console.log(sizes);
     var contentType;
-    S3.getObject({ Bucket: BUCKET, Key: dir + filename })
+    S3.getObject({ Bucket: BUCKET, Key: dir + "/" + filename })
         .promise()
         .then(data => {
             contentType = data.ContentType;
