@@ -16,7 +16,7 @@ exports.handler = function (event, _context, callback) {
     var dir = parts[1] || '';
     var options = parts[2].split('_');
     var filename = parts[3];
-
+    
 
     var sizes = options[0].split("x");
     var func = options.length > 1 ? options[1] : null;
