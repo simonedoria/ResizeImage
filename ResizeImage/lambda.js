@@ -11,8 +11,11 @@ const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 
 exports.handler = function(event, _context, callback) {
     console.log("Entro");
-    callback(null, "success");
-    /*var parts = PathPattern.exec(path);
+    console.log(path);
+    callback(null, event);
+    /*
+    var path = event.queryStringParameters.path;
+    var parts = PathPattern.exec(path);
     var dir = parts[1] || '';
     var options = parts[2].split('_');
     var filename = parts[3];
