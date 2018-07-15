@@ -10,11 +10,7 @@ const BUCKET = "infooggi";
 const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 
 exports.handler = function (event, _context, callback) {
-    var response = {
-        "isBase64Encoded": 1,
-        "statusCode": 200,
-        "body": JSON.stringify(event)
-    }
+    console.log(event);
     var path = event.queryStringParameters.path;
     var parts = PathPattern.exec(path);
     var dir = parts[1] || '';
