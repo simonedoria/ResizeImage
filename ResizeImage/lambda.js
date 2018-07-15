@@ -11,7 +11,7 @@ const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 
 exports.handler = function (event, _context, callback) {
     console.log(event);
-    var path = event.queryStringParameters.path;
+    var path = event.queryStringParameters.key;
     var parts = PathPattern.exec(path);
     console.log(parts);
     var dir = parts[1] || '';
