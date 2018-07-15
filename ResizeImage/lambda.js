@@ -24,6 +24,8 @@ exports.handler = function (event, _context, callback) {
     S3.getObject({ Bucket: BUCKET, Key: dir + filename })
         .promise()
         .then(data => {
+            console.log(size[0]);
+            console.log(size[1]);
             contentType = data.ContentType;
             var img = Sharp(data.Body)
                 .resize(
