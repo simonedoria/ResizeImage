@@ -11,15 +11,10 @@ const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 
 exports.handler = function (event, _context, callback) {
     console.log("Entro");
-    console.log(event);
-    console.log(_context);
     var response = {
         "isBase64Encoded": 1,
         "statusCode": 200,
-        "headers": {
-            "headerName": "headerValue"
-        },
-        "body": event
+        "body": JSON.stringify(event)
     }
     callback(null, response);
     /*
