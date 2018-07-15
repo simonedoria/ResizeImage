@@ -15,9 +15,7 @@ exports.handler = function (event, _context, callback) {
     console.log(parts[0]);
     console.log(parts[1]);
     console.log(parts[2]);
-    var dir = parts[1] || '';
-    var options = parts[2];
-    var filename = parts[3];
+    console.log(parts[3]);
 
     var sizes = options[0].split("x");
 
