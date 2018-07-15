@@ -13,9 +13,7 @@ exports.handler = function(event, _context, callback) {
     console.log("Entro");
     var path = event.queryStringParameters.path;
     console.log(path);
-    callback(path, {
-                statusCode: 200
-            })
+    callback(null, path);
     /*var parts = PathPattern.exec(path);
     var dir = parts[1] || '';
     var options = parts[2].split('_');
