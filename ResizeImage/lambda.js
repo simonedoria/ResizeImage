@@ -18,6 +18,7 @@ exports.handler = function (event, _context, callback) {
     options = options.replace("/", "");
     var sizes = options.split("x");
     var contentType;
+    console.log(filepath);
     S3.getObject({ Bucket: BUCKET, Key: filepath })
         .promise()
         .then(data => {
