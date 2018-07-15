@@ -10,14 +10,11 @@ const BUCKET = "infooggi";
 const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 
 exports.handler = function (event, _context, callback) {
-    console.log("Entro");
     var response = {
         "isBase64Encoded": 1,
         "statusCode": 200,
         "body": JSON.stringify(event)
     }
-    callback(null, response);
-    /*
     var path = event.queryStringParameters.path;
     var parts = PathPattern.exec(path);
     var dir = parts[1] || '';
@@ -74,5 +71,5 @@ exports.handler = function (event, _context, callback) {
                 body: 'Exception: ' + e.message,
                 headers: {"Content-Type": "text/plain"}
             })
-        });*/
+        });
 }
