@@ -2,18 +2,26 @@
 
 
 const AWS = require('aws-sdk')
-const S3 = new AWS.S3({signatureVersion: 'v4'});
+const S3 = new AWS.S3({ signatureVersion: 'v4' });
 const PathPattern = new RegExp("(.*/)?(.*)/(.*)");
 
 // parameters
 const BUCKET = "infooggi";
 const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 
-exports.handler = function(event, _context, callback) {
+exports.handler = function (event, _context, callback) {
     console.log("Entro");
     console.log(event);
     console.log(_context);
-    callback(null, event);
+    var response = {
+        "isBase64Encoded": 1,
+        "statusCode": 200,
+        "headers": {
+            "headerName": "headerValue"
+        },
+        "body": event
+    }
+    callback(null, response);
     /*
     var path = event.queryStringParameters.path;
     var parts = PathPattern.exec(path);
