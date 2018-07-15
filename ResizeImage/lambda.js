@@ -64,8 +64,8 @@ exports.handler = function (event, _context, callback) {
         .catch(e => {
             callback(null, {
                 statusCode: e.statusCode || 400,
-                body: 'Exception: ' + e,
-                headers: { "Content-Type": "application/json" }
+                body: 'Exception: ' + e.message,
+                headers: { "Content-Type": "text/plain" }
             })
         });
 }
