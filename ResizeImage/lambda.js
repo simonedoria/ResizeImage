@@ -11,7 +11,9 @@ const BUCKET = "infooggi";
 const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 
 exports.handler = function(event, _context, callback) {
+    console.log("Entro");
     var path = event.queryStringParameters.path;
+    console.log(path);
     callback(path, {
                 statusCode: 200
             })
