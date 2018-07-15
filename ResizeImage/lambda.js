@@ -48,8 +48,6 @@ exports.handler = function (event, _context, callback) {
             return img.withoutEnlargement().toBuffer();
         })
         .then(result => {
-            console.log("result img");
-            console.log(result);
             S3.putObject({
                 Body: result,
                 Bucket: BUCKET,
@@ -66,8 +64,8 @@ exports.handler = function (event, _context, callback) {
         .catch(e => {
             callback(null, {
                 statusCode: e.statusCode || 400,
-                body: 'Exception: ' + e.message,
-                headers: { "Content-Type": "text/plain" }
+                body: 'Exception: ' + e,
+                headers: { "Content-Type": "application/json" }
             })
         });
 }
