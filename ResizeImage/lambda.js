@@ -10,7 +10,6 @@ const BUCKET = "infooggi";
 const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 
 exports.handler = function (event, _context, callback) {
-    console.log(event);
     var path = event.queryStringParameters.key;
     var parts = PathPattern.exec(path);
     console.log(parts);
@@ -49,6 +48,7 @@ exports.handler = function (event, _context, callback) {
             return img.withoutEnlargement().toBuffer();
         })
         .then(result => {
+            console.log("result img");
             console.log(result);
             S3.putObject({
                 Body: result,
