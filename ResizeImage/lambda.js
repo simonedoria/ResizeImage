@@ -13,6 +13,7 @@ exports.handler = function (event, _context, callback) {
     var path = event.queryStringParameters.key;
     var parts = PathPattern.exec(path);
     var options = parts[1].replace("/", "");
+    options = options.replace("/", "");
     var dir = parts[2];
     var filename = parts[3];
     var sizes = options.split("x");
