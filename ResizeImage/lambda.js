@@ -1,95 +1,146 @@
-/*
- * Original source: https://docs.aws.amazon.com/lambda/latest/dg/with-s3-example-deployment-pkg.html
- * Retrieved on:    2018-01-19
- */
+// dependencies
+var async = require('async');
+var AWS = require('aws-sdk');
+var gm = require('gm').subClass({
+  imageMagick: true
+}); // use ImageMagick
+var util = require('util');
 
-// Dependencies
-let AWS = require('aws-sdk');
-let async = require('async');
-let util = require('util');
-// Enable ImageMagick integration.
-let gm = require('gm').subClass({ imageMagick: true });
+// configuration as code - add, modify, remove array elements as desired
+var imgVariants = [
+  {
+    "SIZE": "Large",
+    "POSTFIX": "-l",
+    "MAX_WIDTH": 1200,
+    "MAX_HEIGHT": 1000,
+    "SIZING_QUALITY": 70,
+    "INTERLACE": "Line"
+  },
+  {
+    "SIZE": "Medium",
+    "POSTFIX": "-m",
+    "MAX_WIDTH": 800,
+    "MAX_HEIGHT": 800,
+    "SIZING_QUALITY": 60,
+    "INTERLACE": "Line"
+  },
+  {
+    "SIZE": "Small",
+    "POSTFIX": "-s",
+    "MAX_WIDTH": 300,
+    "MAX_HEIGHT": 400,
+    "SIZING_QUALITY": 50,
+    "INTERLACE": "Line"
+  }
+];
+// The name of the destination S3 bucket is derived by adding this postfix to the name of the source S3 bucket:
+var DST_BUCKET_POSTFIX = "";
 
-// Get reference to S3 client.
-const s3 = new AWS.S3();
 
-// Constants
-const MAX_WIDTH = 100;
-const MAX_HEIGHT = 100;
 
-exports.handler = function (event, context, callback) {
+// get reference to S3 client
+var s3 = new AWS.S3();
 
-    // Read options from the event.
-    console.log("Reading options from event:\n", util.inspect(event, { depth: 5 }));
+exports.handler = function (event, context) {
+  // Read options from the event.
+  console.log("Reading options from event:\n", util.inspect(event, {
+    depth: 5
+  }));
+  var srcBucket = event.Records[0].s3.bucket.name;
+  // Object key may have spaces or unicode non-ASCII characters.
+  var srcKey = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
+  // derive the file name and extension
+  var srcFile = srcKey.match(/(.+)\.([^.]+)/);
+  var srcName = srcFile[1];
+  var scrExt = srcFile[2];
+  // set the destination bucket
+  var dstBucket = srcBucket + DST_BUCKET_POSTFIX;
 
-    // Object key may have spaces or unicode non-ASCII characters.
-    let srcKey = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
-    let dstKey = "thumb-" + srcKey;
 
-    // Infer the image type.
-    let typeMatch = srcKey.match(/\.([^.]*)$/);
-    if (!typeMatch) {
-        callback("Could not determine the image type.");
-        return;
-    }
-    let imageType = typeMatch[1];
-    if (imageType != "jpg" && imageType != "png") {
-        callback(`Unsupported image type: ${imageType}`);
-        return;
-    }
+  // make sure that source and destination are different buckets.
+  if (srcBucket === dstBucket) {
+    console.error("Destination bucket must be different from source bucket.");
+    return;
+  }
 
-    // Download the image from S3, transform, and upload under new key.
-    async.waterfall([
-            function download(next) {
-                // Download the image from S3 into a buffer.
-                s3.getObject({
-                    'Bucket': "sigma-s3-thumb-input",
-                    'Key': srcKey
-                }, next);
+  if (!scrExt) {
+    console.error('unable to derive file type extension from file key ' + srcKey);
+    return;
+  }
+
+  if (scrExt != "jpg" && scrExt != "png") {
+    console.log('skipping non-supported file type ' + srcKey + ' (must be jpg or png)');
+    return;
+  }
+
+  function processImage(data, options, callback) {
+    gm(data.Body).size(function (err, size) {
+
+      var scalingFactor = Math.min(
+        options.MAX_WIDTH / size.width,
+        options.MAX_HEIGHT / size.height
+      );
+      var width = scalingFactor * size.width;
+      var height = scalingFactor * size.height;
+
+      this.resize(width, height)
+        .quality(options.SIZING_QUALITY || 75)
+        .interlace(options.INTERLACE || 'None')
+        .toBuffer(scrExt, function (err, buffer) {
+          if (err) {
+            callback(err);
+          } else {
+            uploadImage(data.ContentType, buffer, options, callback);
+          }
+        });
+    });
+  }
+
+  function uploadImage(contentType, data, options, callback) {
+    // Upload the transformed image to the destination S3 bucket.
+    s3.putObject({
+        Bucket: dstBucket,
+        Key: srcName + options.POSTFIX + '.' + scrExt,
+        Body: data,
+        ContentType: contentType
+      },
+      callback);
+  }
+
+
+  // Download the image from S3 and process for each requested image variant.
+  async.waterfall(
+    [
+      function download(next) {
+          // Download the image from S3 into a buffer.
+          s3.getObject({
+              Bucket: srcBucket,
+              Key: srcKey
             },
-            function transform(response, next) {
-                gm(response.Body).size(function (err, size) {
-                    // Infer the scaling factor to avoid stretching the image unnaturally.
-                    let scalingFactor = Math.min(
-                        MAX_WIDTH / size.width,
-                        MAX_HEIGHT / size.height
-                    );
-                    let width = scalingFactor * size.width;
-                    let height = scalingFactor * size.height;
+            next);
+      },
+      function processImages(data, next) {
+          async.each(imgVariants, function (variant, next) {
+            processImage(data, variant, next);
+          }, next);
+      }
 
-                    // Transform the image buffer in memory.
-                    this.resize(width, height)
-                        .toBuffer(imageType, function (err, buffer) {
-                            if (err) {
-                                next(err);
-                            } else {
-                                next(null, response.ContentType, buffer);
-                            }
-                        });
-                });
-            },
-            function upload(contentType, data, next) {
-                // Stream the transformed image to a different S3 bucket.
-                s3.putObject({
-                    "Body": data,
-                    "Bucket": "sigma-s3-thumb-output",
-                    "Key": dstKey,
-                    "ACL": "public-read",
-                    "Metadata": {
-                        "Content-Type": contentType
-                    }
-                }, next);
-            }
-        ], function (err) {
-            let msg;
-            if (err) {
-                msg = `Unable to resize sigma-s3-thumb-input/${srcKey} and upload to sigma-s3-thumb-output/${dstKey} due to an error: ${err}`;
-                console.error(msg);
-            } else {
-                msg = `Successfully resized sigma-s3-thumb-input/${srcKey} and uploaded to sigma-s3-thumb-output/${dstKey}`;
-                console.log(msg);
-            }
-            callback(err, msg);
-        }
-    );
+    ],
+    function (err) {
+      if (err) {
+        console.error(
+          'Unable to resize ' + srcBucket + '/' + srcKey +
+          ' and upload to ' + dstBucket +
+          ' due to an error: ' + err
+        );
+      } else {
+        console.log(
+          'Successfully resized ' + srcBucket + '/' + srcKey +
+          ' and uploaded to ' + dstBucket
+        );
+      }
+
+      context.done();
+    }
+  );
 };
