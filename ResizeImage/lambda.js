@@ -19,9 +19,9 @@ exports.handler = function (event, _context, callback) {
     var dir = parts[2];
     var filepath = "";
     if(parts[3] !== null) {
-        var filepath = dir + "/" + part[3];
+        var filepath = dir + "/" + parts[3];
     } else {
-        filepath = part[2];
+        filepath = parts[2];
     }
     var contentType;
     console.log(filepath);
