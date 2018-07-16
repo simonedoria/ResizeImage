@@ -13,10 +13,16 @@ const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 exports.handler = function (event, _context, callback) {
     var path = event.queryStringParameters.key;
     var parts = PathPattern.exec(path);
-    var filepath = parts[2];
     var options = parts[1].replace("/", "");
     options = options.replace("/", "");
     var sizes = options.split("x");
+    var dir = parts[2];
+    var filepath = "";
+    if(parts[3] !== null) {
+        var filepath = dir + "/" + part[3];
+    } else {
+        filepath = part[2];
+    }
     var contentType;
     console.log(filepath);
     S3.getObject({ Bucket: BUCKET, Key: filepath })
