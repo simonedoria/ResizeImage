@@ -4,7 +4,6 @@
 const AWS = require('aws-sdk')
 const S3 = new AWS.S3({ signatureVersion: 'v4' });
 const Sharp = require('sharp');
-const PathPattern = new RegExp("(.*/)?(.*)/(.*)");
 
 // parameters
 const BUCKET = "infooggi";
@@ -12,14 +11,10 @@ const URL = "http://infooggi.s3-website.eu-central-1.amazonaws.com";
 
 exports.handler = function (event, _context, callback) {
     var path = event.queryStringParameters.key;
-    var parts = PathPattern.exec(path);
-    var options = parts[1].replace("/", "");
-    options = options.replace("/", "");
+    var parts = path.split("/");
+    var options = parts[0];
     var sizes = options.split("x");
     var filepathArray = parts.slice(1);
-    console.log(parts[1]);
-    console.log(parts[2]);
-    console.log(parts[3]);
     var filepath = filepathArray.join("/");
     var contentType;
     console.log(filepath);
