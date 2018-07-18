@@ -16,13 +16,8 @@ exports.handler = function (event, _context, callback) {
     var options = parts[1].replace("/", "");
     options = options.replace("/", "");
     var sizes = options.split("x");
-    var dir = parts[2];
-    var filepath = "";
-    if(parts[3] !== null) {
-        var filepath = dir + "/" + parts[3];
-    } else {
-        filepath = parts[2];
-    }
+    var filepathArray = parst.shift();
+    var filepath = filepathArray.join("/");
     var contentType;
     console.log(filepath);
     S3.getObject({ Bucket: BUCKET, Key: filepath })
