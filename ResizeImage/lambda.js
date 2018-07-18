@@ -16,7 +16,7 @@ exports.handler = function (event, _context, callback) {
     var options = parts[1].replace("/", "");
     options = options.replace("/", "");
     var sizes = options.split("x");
-    var filepathArray = parst.shift();
+    var filepathArray = parts.shift().shift();
     var filepath = filepathArray.join("/");
     var contentType;
     console.log(filepath);
